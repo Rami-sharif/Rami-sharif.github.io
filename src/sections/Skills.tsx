@@ -48,6 +48,16 @@ const icons = {
       <path d="M9 12l2 2 4-4" />
     </svg>
   ),
+  pentest: (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="3" />
+      <line x1="12" y1="1" x2="12" y2="5" />
+      <line x1="12" y1="19" x2="12" y2="23" />
+      <line x1="1" y1="12" x2="5" y2="12" />
+      <line x1="19" y1="12" x2="23" y2="12" />
+    </svg>
+  ),
   automation: (
     <svg {...iconProps}>
       <polyline points="4 17 10 11 4 5" />
@@ -68,11 +78,11 @@ const skills: Skill[] = [
     id: 'soc',
     title: 'Security Operations & SIEM',
     description: [
-      'Detect, analyze, and respond to security incidents within SOC environments.',
+      'Detect, analyze, and respond to security incidents across the full incident response lifecycle.',
       'Perform log analysis and correlation across multiple data sources.',
       'Monitor endpoints, servers, and network devices for suspicious behavior.',
     ],
-    tools: ['Security Onion', 'Wazuh', 'ELK Stack', 'Splunk'],
+    tools: ['Wazuh (SIEM & XDR)', 'Incident Response Lifecycle', 'Log Analysis'],
     icon: icons.soc,
   },
   {
@@ -83,7 +93,16 @@ const skills: Skill[] = [
       'Configure and manage firewall policies, NAT rules, and network segmentation.',
       'Deploy and maintain VPN solutions for secure remote access.',
     ],
-    tools: ['pfSense', 'OpenVPN', 'HAProxy', 'Mikrotik', 'Wireguard '],
+    tools: [
+      'pfSense',
+      'MikroTik',
+      'OpenVPN',
+      'WireGuard',
+      'HAProxy',
+      'Network Segmentation',
+      'Firewalling',
+      'Cloudflare WAF',
+    ],
     icon: icons.network,
   },
   {
@@ -91,22 +110,42 @@ const skills: Skill[] = [
     title: 'Cloud Security',
     description: [
       'Harden cloud instances via OS hardening, SSH/MFA, and network controls.',
-      'Secure S3 buckets with least-privilege policies, public access blocks, and encryption.',
-      'Enforce least-privilege access using IAM roles with cloud logging enabled.',
+      'Secure storage with least-privilege policies, public access blocks, encryption, and DLP.',
+      'Enforce least-privilege access using IAM roles with cloud logging and IaC scanning.',
     ],
-    tools: ['AWS (IAM, S3, CloudTrail, VPC)', 'Google Cloud(VM,IAM,Bucket,Logging)'],
+    tools: ['AWS', 'Google Cloud', 'IAM', 'S3', 'CloudTrail', 'VPC', 'DLP', 'IaC Scanning', 'Logging'],
     icon: icons.cloud,
   },
   {
-    id: 'code security and devops',
-    title: 'Code Security & DevOps',
+    id: 'devsecops',
+    title: 'DevSecOps & Application Security',
     description: [
-      'Implement security practices into the software development lifecycle.',
-      'Conduct code reviews and static analysis to identify vulnerabilities.',
-      'Integrate security testing into CI/CD pipelines.',
+      'Embed security across the SDLC with secure code review and automated scanning in CI/CD.',
+      'Run SAST, SCA, secrets detection, IaC, and container image scanning in pipelines.',
+      'Harden Docker images with minimal bases, non-root users, and dropped capabilities.',
     ],
-    tools: ['OWASP Top 10', 'Burp Suite', 'SonarQube', 'GitHub Actions', 'GitLab CI'],
+    tools: [
+      'OWASP Top 10',
+      'SAST / SCA',
+      'Secrets Detection',
+      'IaC Scanning',
+      'Docker Hardening',
+      'Secure Code Review',
+      'SonarQube',
+      'GitHub Actions',
+      'GitLab CI',
+    ],
     icon: icons.web,
+  },
+  {
+    id: 'pentest',
+    title: 'Vibe Penetration Testing',
+    description: [
+      'Proven results in finding High-severity vulnerabilities and reporting them professionally with working PoCs.',
+      'Backed by strong OWASP Top 10 knowledge and a clear understanding of how vulnerabilities arise and how to fix them.',
+    ],
+    tools: ['OWASP Top 10', 'Working PoCs', 'Root-Cause Analysis', 'Remediation Guidance', 'Professional Reporting'],
+    icon: icons.pentest,
   },
   {
     id: 'automation',
