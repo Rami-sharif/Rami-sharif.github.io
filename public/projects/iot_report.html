@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure IoT Communication Architecture — Technical Report</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --surface: #12151c;
+  --surface-alt: #181c26;
+  --border: #232a38;
+  --border-glow: #2a3a5c;
+  --text: #e2e6ef;
+  --text-dim: #8892a6;
+  --text-muted: #5a6478;
+  --accent: #4f8ff7;
+  --accent-glow: #3a6fd8;
+  --accent-dim: rgba(79, 143, 247, 0.08);
+  --green: #34d399;
+  --green-dim: rgba(52, 211, 153, 0.1);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251, 191, 36, 0.1);
+  --red: #f87171;
+  --red-dim: rgba(248, 113, 113, 0.08);
+  --cyan: #22d3ee;
+  --purple: #a78bfa;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Hero ─── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(79,143,247,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 80% 70%, rgba(167,139,250,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,143,247,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,143,247,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 70%);
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  background: var(--surface);
+  position: relative;
+  z-index: 1;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  font-weight: 400;
+  line-height: 1.15;
+  max-width: 800px;
+  position: relative;
+  z-index: 1;
+  letter-spacing: -0.01em;
+}
+.hero h1 span {
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-sub {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  max-width: 580px;
+  position: relative;
+  z-index: 1;
+  font-weight: 300;
+}
+.hero-tags {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+.hero-tags span {
+  padding: 0.35rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* ─── Container & Sections ─── */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+section {
+  padding: 5rem 0;
+}
+section + section {
+  border-top: 1px solid var(--border);
+}
+
+/* ─── TOC ─── */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+}
+.toc-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 1.2rem;
+}
+.toc ol {
+  list-style: none;
+  counter-reset: toc;
+}
+.toc li {
+  counter-increment: toc;
+  margin-bottom: 0.6rem;
+}
+.toc li a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  transition: color 0.2s;
+}
+.toc li a:hover { color: var(--accent); }
+.toc li a::before {
+  content: counter(toc, decimal-leading-zero);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 1.5rem;
+}
+
+/* ─── Typography ─── */
+h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 0.4rem;
+}
+h2 .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-right: 0.6rem;
+  vertical-align: 2px;
+}
+.section-lead {
+  color: var(--text-dim);
+  font-size: 1.05rem;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 2.5rem 0 0.8rem;
+  color: var(--text);
+}
+p { margin-bottom: 1rem; color: var(--text-dim); font-weight: 300; }
+
+/* ─── Diagram Container ─── */
+.diagram-wrap {
+  margin: 2.5rem 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.diagram-header {
+  padding: 0.8rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.diagram-header .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.diagram-body {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+.diagram-body svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ─── Comparison Table ─── */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.88rem;
+}
+.comp-table th {
+  text-align: left;
+  padding: 0.8rem 1rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.comp-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  vertical-align: top;
+}
+.comp-table tr:hover td { background: var(--accent-dim); }
+.comp-table .check { color: var(--green); font-weight: 700; }
+.comp-table .cross { color: var(--red); font-weight: 700; }
+.comp-table .winner {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ─── Layer Cards ─── */
+.layer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+@media (max-width: 640px) { .layer-grid { grid-template-columns: 1fr; } }
+.layer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: border-color 0.2s;
+}
+.layer-card:hover { border-color: var(--border-glow); }
+.layer-card .tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+.layer-card .tag.edge { background: var(--green-dim); color: var(--green); }
+.layer-card .tag.gateway { background: var(--amber-dim); color: var(--amber); }
+.layer-card .tag.core { background: var(--accent-dim); color: var(--accent); }
+.layer-card .tag.dmz { background: var(--red-dim); color: var(--red); }
+.layer-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.layer-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+/* ─── Code Block ─── */
+.code-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.code-header {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.code-header .dots { display: flex; gap: 5px; }
+.code-header .dots span {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.code-header .dots span:nth-child(1) { background: #f87171; }
+.code-header .dots span:nth-child(2) { background: #fbbf24; }
+.code-header .dots span:nth-child(3) { background: #34d399; }
+.code-body {
+  padding: 1.2rem 1.5rem;
+  overflow-x: auto;
+}
+.code-body pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+.code-body .kw { color: var(--purple); }
+.code-body .str { color: var(--green); }
+.code-body .cm { color: var(--text-muted); font-style: italic; }
+.code-body .fn { color: var(--accent); }
+.code-body .num { color: var(--amber); }
+
+/* ─── Callout ─── */
+.callout {
+  display: flex;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 10px;
+  margin: 2rem 0;
+  align-items: flex-start;
+}
+.callout.info { background: var(--accent-dim); border-left: 3px solid var(--accent); }
+.callout.warn { background: var(--amber-dim); border-left: 3px solid var(--amber); }
+.callout.secure { background: var(--green-dim); border-left: 3px solid var(--green); }
+.callout-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.88rem; color: var(--text-dim); }
+.callout strong { color: var(--text); }
+
+/* ─── Topic Tree ─── */
+.topic-tree {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 2;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem 2rem;
+  margin: 1.5rem 0;
+}
+.topic-tree .folder { color: var(--accent); }
+.topic-tree .file { color: var(--green); }
+.topic-tree .desc { color: var(--text-muted); }
+
+/* ─── Flow Steps ─── */
+.flow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 2rem 0;
+}
+.flow-step {
+  display: flex;
+  gap: 1.2rem;
+  align-items: stretch;
+}
+.flow-step-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+.flow-step-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 2px var(--accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.flow-step-bar {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  margin: 4px 0;
+}
+.flow-step:last-child .flow-step-bar { display: none; }
+.flow-step-content {
+  padding-bottom: 2rem;
+}
+.flow-step-content h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.flow-step-content p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ─── Security Layers Stack ─── */
+.security-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 2rem 0;
+}
+.security-layer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.security-layer:hover {
+  transform: translateX(6px);
+  border-color: var(--border-glow);
+}
+.security-layer .icon {
+  font-size: 1.4rem;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.security-layer .icon.net { background: var(--accent-dim); }
+.security-layer .icon.fw { background: var(--amber-dim); }
+.security-layer .icon.tls { background: var(--green-dim); }
+.security-layer .icon.ssh { background: var(--red-dim); }
+.security-layer h4 { font-size: 0.9rem; font-weight: 600; }
+.security-layer p { font-size: 0.8rem; margin: 0; }
+
+/* ─── Footer ─── */
+.footer {
+  text-align: center;
+  padding: 4rem 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* ─── Scroll Animations ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">Production Architecture</div>
+  <h1>Secure &amp; Scalable <span>IoT Communication</span> Architecture</h1>
+  <p class="hero-sub">Network design, protocol analysis, mutual TLS authentication, and remote device control for distributed ESP32 deployments.</p>
+  <div class="hero-tags">
+    <span>ESP32</span>
+    <span>MQTT / EMQX</span>
+    <span>mTLS / PKI</span>
+    <span>OpenVPN</span>
+    <span>pfSense</span>
+    <span>Server Hardening</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════ TOC ═══════════════════════ -->
+<div class="container">
+  <section>
+    <nav class="toc reveal">
+      <div class="toc-title">Table of Contents</div>
+      <ol>
+        <li><a href="#objective">Project Objective</a></li>
+        <li><a href="#architecture">Network Architecture Design</a></li>
+        <li><a href="#mqtt-vs-http">MQTT vs HTTP — Protocol Comparison</a></li>
+        <li><a href="#mqtt-topics">MQTT Topic Design &amp; Communication Flows</a></li>
+        <li><a href="#tls-mtls">TLS vs mTLS — Authentication Model</a></li>
+        <li><a href="#device-client">ESP32 Client Implementation</a></li>
+        <li><a href="#remote-exec">Remote Shell Command Execution</a></li>
+        <li><a href="#hardening">Server Hardening &amp; Defence in Depth</a></li>
+      </ol>
+    </nav>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 01 OBJECTIVE ═══════════════════════ -->
+<div class="container">
+  <section id="objective">
+    <h2 class="reveal"><span class="num">01</span>Project Objective</h2>
+    <p class="section-lead reveal">Design and implement a secure, stable, and efficient communication infrastructure enabling centralized monitoring and control of 100+ ESP32-based IoT devices deployed across multiple geographic regions.</p>
+
+    <div class="callout info reveal">
+      <span class="callout-icon">🎯</span>
+      <p><strong>Core goals:</strong> Encrypted device-to-server communication via MQTT over TLS, scalable certificate management through a private PKI, VPN-only administrative access, and a layered security model that minimizes the attack surface at every tier.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 02 ARCHITECTURE ═══════════════════════ -->
+<div class="container">
+  <section id="architecture">
+    <h2 class="reveal"><span class="num">02</span>Network Architecture Design</h2>
+    <p class="section-lead reveal">A four-layer architecture separating edge devices, the security gateway, the core broker, and a DMZ for firmware updates — each with a distinct security boundary.</p>
+
+    <div class="layer-grid reveal">
+      <div class="layer-card">
+        <span class="tag edge">Edge Layer</span>
+        <h4>ESP32 Devices</h4>
+        <p>Distributed IoT devices sending telemetry and receiving commands. Connect to the broker over the public internet using MQTT secured with mutual TLS.</p>
+      </div>
+      <div class="layer-card">
+        <span class="tag gateway">Security Gateway</span>
+        <h4>pfSense Firewall</h4>
+        <p>Cloud-hosted VPS acting as the public entry point. Handles firewall rules, NAT, OpenVPN tunnel management, and traffic filtering. The only component with a public IP.</p>
+      </div>
+      <div class="layer-card">
+        <span class="tag core">Core Layer</span>
+        <h4>EMQX MQTT Broker</h4>
+        <p>Runs on an internal server reachable only through the VPN tunnel. Manages all publish/subscribe routing, device authentication, and message delivery.</p>
+      </div>
+      <div class="layer-card">
+        <span class="tag dmz">DMZ</span>
+        <h4>OTA &amp; CA Server</h4>
+        <p>Isolated zone hosting the firmware update server and the Step-CA certificate authority. Accessible only when needed, buffered from both external and internal networks.</p>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="diagram-wrap reveal">
+      <div class="diagram-header"><span class="dot"></span> System Architecture — Sanitized View</div>
+      <div class="diagram-body">
+        <svg viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <!-- Background grid -->
+          <defs>
+            <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(79,143,247,0.04)" stroke-width="0.5"/>
+            </pattern>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <rect width="820" height="580" fill="#12151c" rx="12"/>
+          <rect width="820" height="580" fill="url(#grid)" rx="12"/>
+
+          <!-- ESP32 Devices -->
+          <g transform="translate(140, 30)">
+            <text x="270" y="0" text-anchor="middle" fill="#5a6478" font-size="10" font-family="Outfit" letter-spacing="2" text-transform="uppercase">EDGE LAYER — INTERNET</text>
+            <g transform="translate(0, 16)">
+              <rect x="0" y="0" width="100" height="40" rx="6" fill="none" stroke="#34d399" stroke-width="1.5"/>
+              <text x="50" y="25" text-anchor="middle" fill="#34d399" font-size="12" font-family="Outfit" font-weight="500">ESP32 #1</text>
+            </g>
+            <g transform="translate(140, 16)">
+              <rect x="0" y="0" width="100" height="40" rx="6" fill="none" stroke="#34d399" stroke-width="1.5"/>
+              <text x="50" y="25" text-anchor="middle" fill="#34d399" font-size="12" font-family="Outfit" font-weight="500">ESP32 #2</text>
+            </g>
+            <g transform="translate(280, 16)">
+              <rect x="0" y="0" width="100" height="40" rx="6" fill="none" stroke="#34d399" stroke-width="1.5"/>
+              <text x="50" y="25" text-anchor="middle" fill="#34d399" font-size="12" font-family="Outfit" font-weight="500">ESP32 #3</text>
+            </g>
+            <g transform="translate(420, 16)">
+              <rect x="0" y="0" width="100" height="40" rx="6" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <text x="50" y="25" text-anchor="middle" fill="#34d399" font-size="12" font-family="Outfit" font-weight="500">ESP32 #N</text>
+            </g>
+          </g>
+
+          <!-- Connection lines from ESP32 to pfSense -->
+          <line x1="190" y1="86" x2="410" y2="170" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+          <line x1="330" y1="86" x2="410" y2="170" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+          <line x1="470" y1="86" x2="410" y2="170" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+          <line x1="610" y1="86" x2="410" y2="170" stroke="#34d399" stroke-width="1" opacity="0.4" stroke-dasharray="4 3"/>
+
+          <!-- MQTT over mTLS label -->
+          <text x="300" y="130" fill="#4f8ff7" font-size="10" font-family="JetBrains Mono" letter-spacing="1">MQTT over mTLS (port 8883)</text>
+
+          <!-- pfSense Gateway -->
+          <g transform="translate(310, 170)">
+            <rect x="0" y="0" width="200" height="64" rx="8" fill="rgba(251,191,36,0.06)" stroke="#fbbf24" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="#fbbf24" font-size="13" font-family="Outfit" font-weight="600">pfSense Gateway</text>
+            <text x="100" y="42" text-anchor="middle" fill="#8892a6" font-size="10" font-family="JetBrains Mono">OpenVPN + Firewall + NAT</text>
+            <text x="100" y="58" text-anchor="middle" fill="#5a6478" font-size="9" font-family="Outfit">Cloud VPS — Public Endpoint</text>
+          </g>
+
+          <!-- Remote Users -->
+          <g transform="translate(620, 175)">
+            <rect x="0" y="0" width="160" height="54" rx="8" fill="none" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="80" y="22" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="Outfit" font-weight="500">Remote Users</text>
+            <text x="80" y="40" text-anchor="middle" fill="#5a6478" font-size="9" font-family="JetBrains Mono">VPN Clients (OpenVPN)</text>
+          </g>
+          <line x1="620" y1="202" x2="510" y2="202" stroke="#a78bfa" stroke-width="1" opacity="0.4" stroke-dasharray="4 3"/>
+
+          <!-- OpenVPN Tunnel -->
+          <line x1="410" y1="234" x2="410" y2="310" stroke="#fbbf24" stroke-width="1.5" opacity="0.5"/>
+          <rect x="370" y="260" width="80" height="20" rx="4" fill="#12151c" stroke="#fbbf24" stroke-width="1"/>
+          <text x="410" y="274" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="JetBrains Mono">VPN TUNNEL</text>
+
+          <!-- Main Server -->
+          <g transform="translate(310, 310)">
+            <rect x="0" y="0" width="200" height="64" rx="8" fill="rgba(79,143,247,0.06)" stroke="#4f8ff7" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="#4f8ff7" font-size="13" font-family="Outfit" font-weight="600">EMQX MQTT Broker</text>
+            <text x="100" y="42" text-anchor="middle" fill="#8892a6" font-size="10" font-family="JetBrains Mono">Main Server (Internal)</text>
+            <text x="100" y="58" text-anchor="middle" fill="#5a6478" font-size="9" font-family="Outfit">Not exposed to Internet</text>
+          </g>
+
+          <!-- DMZ -->
+          <g transform="translate(60, 300)">
+            <rect x="0" y="0" width="180" height="90" rx="8" fill="none" stroke="#f87171" stroke-width="1" stroke-dasharray="5 4"/>
+            <text x="90" y="18" text-anchor="middle" fill="#f87171" font-size="9" font-family="Outfit" letter-spacing="1.5" text-transform="uppercase">DMZ ZONE</text>
+            <g transform="translate(15, 28)">
+              <rect x="0" y="0" width="150" height="24" rx="4" fill="rgba(248,113,113,0.06)" stroke="#f87171" stroke-width="0.8"/>
+              <text x="75" y="16" text-anchor="middle" fill="#f87171" font-size="10" font-family="Outfit">OTA Update Server</text>
+            </g>
+            <g transform="translate(15, 58)">
+              <rect x="0" y="0" width="150" height="24" rx="4" fill="rgba(248,113,113,0.06)" stroke="#f87171" stroke-width="0.8"/>
+              <text x="75" y="16" text-anchor="middle" fill="#f87171" font-size="10" font-family="Outfit">Step-CA (PKI)</text>
+            </g>
+          </g>
+          <line x1="240" y1="350" x2="310" y2="345" stroke="#f87171" stroke-width="1" opacity="0.3"/>
+
+          <!-- Communication Flows Legend -->
+          <g transform="translate(60, 450)">
+            <rect x="0" y="0" width="700" height="100" rx="8" fill="rgba(35,42,56,0.5)" stroke="#232a38" stroke-width="1"/>
+            <text x="20" y="22" fill="#5a6478" font-size="9" font-family="Outfit" letter-spacing="2">COMMUNICATION FLOWS</text>
+
+            <line x1="20" y1="42" x2="50" y2="42" stroke="#34d399" stroke-width="1.5"/>
+            <text x="58" y="46" fill="#8892a6" font-size="10" font-family="Outfit">ESP32 → Broker: MQTT over mTLS (mutual authentication)</text>
+
+            <line x1="20" y1="62" x2="50" y2="62" stroke="#fbbf24" stroke-width="1.5"/>
+            <text x="58" y="66" fill="#8892a6" font-size="10" font-family="Outfit">Gateway ↔ Server: Encrypted OpenVPN tunnel</text>
+
+            <line x1="20" y1="82" x2="50" y2="82" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text x="58" y="86" fill="#8892a6" font-size="10" font-family="Outfit">Remote Users: VPN-authenticated access only</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="callout secure reveal">
+      <span class="callout-icon">🛡️</span>
+      <p><strong>Key design decision:</strong> The MQTT broker is never directly exposed to the internet. All device traffic enters through the pfSense gateway, which performs NAT and forwards it through an encrypted VPN tunnel to the internal server. This dramatically reduces the attack surface.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 03 MQTT vs HTTP ═══════════════════════ -->
+<div class="container">
+  <section id="mqtt-vs-http">
+    <h2 class="reveal"><span class="num">03</span>MQTT vs HTTP — Protocol Comparison</h2>
+    <p class="section-lead reveal">Why MQTT was chosen as the primary device communication protocol, and where HTTP still plays a role in the architecture.</p>
+
+    <table class="comp-table reveal">
+      <thead>
+        <tr><th>Feature</th><th>MQTT</th><th>HTTP</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Communication Model</td><td class="winner">Publish / Subscribe</td><td>Request / Response</td></tr>
+        <tr><td>Connection Type</td><td class="winner">Persistent connection</td><td>New connection per request</td></tr>
+        <tr><td>Latency</td><td class="winner">Low (real-time)</td><td>Higher (polling-dependent)</td></tr>
+        <tr><td>Bandwidth</td><td class="winner">Minimal headers, lightweight</td><td>Heavy headers, repeated requests</td></tr>
+        <tr><td>Power Consumption</td><td class="winner">Low</td><td>High</td></tr>
+        <tr><td>Scalability</td><td class="winner">Handles 1000s of devices</td><td>Limited at scale</td></tr>
+        <tr><td>Bidirectional</td><td class="winner">Native</td><td>Requires extra logic</td></tr>
+        <tr><td>IoT Suitability</td><td class="winner">Excellent</td><td>Limited</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="reveal">Where Each Protocol Is Used</h3>
+
+    <!-- Protocol usage diagram -->
+    <div class="diagram-wrap reveal">
+      <div class="diagram-header"><span class="dot"></span> Protocol Usage Map</div>
+      <div class="diagram-body">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <rect width="760" height="200" fill="#12151c" rx="10"/>
+          <!-- MQTT path -->
+          <g transform="translate(30, 30)">
+            <text x="0" y="0" fill="#34d399" font-size="10" font-family="Outfit" letter-spacing="2">DEVICE LAYER — MQTT</text>
+            <rect x="0" y="14" width="90" height="36" rx="6" fill="none" stroke="#34d399" stroke-width="1.2"/>
+            <text x="45" y="37" text-anchor="middle" fill="#34d399" font-size="11" font-family="Outfit">ESP32</text>
+            <line x1="90" y1="32" x2="150" y2="32" stroke="#34d399" stroke-width="1.2" marker-end="url(#arrowG)"/>
+            <text x="120" y="22" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">MQTT</text>
+            <rect x="150" y="14" width="120" height="36" rx="6" fill="none" stroke="#34d399" stroke-width="1.2"/>
+            <text x="210" y="37" text-anchor="middle" fill="#34d399" font-size="11" font-family="Outfit">EMQX Broker</text>
+            <text x="350" y="37" fill="#5a6478" font-size="10" font-family="Outfit">Fast, lightweight, real-time telemetry &amp; commands</text>
+          </g>
+          <!-- HTTP path -->
+          <g transform="translate(30, 120)">
+            <text x="0" y="0" fill="#a78bfa" font-size="10" font-family="Outfit" letter-spacing="2">USER LAYER — HTTP + MQTT</text>
+            <rect x="0" y="14" width="90" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+            <text x="45" y="37" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="Outfit">User/App</text>
+            <line x1="90" y1="32" x2="150" y2="32" stroke="#a78bfa" stroke-width="1.2"/>
+            <text x="120" y="22" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">HTTP</text>
+            <rect x="150" y="14" width="90" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+            <text x="195" y="37" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="Outfit">Server</text>
+            <line x1="240" y1="32" x2="310" y2="32" stroke="#a78bfa" stroke-width="1.2"/>
+            <text x="275" y="22" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">MQTT</text>
+            <rect x="310" y="14" width="90" height="36" rx="6" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
+            <text x="355" y="37" text-anchor="middle" fill="#a78bfa" font-size="11" font-family="Outfit">ESP32</text>
+            <text x="430" y="37" fill="#5a6478" font-size="10" font-family="Outfit">API integration, dashboards</text>
+          </g>
+          <defs>
+            <marker id="arrowG" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/></marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 04 MQTT TOPICS ═══════════════════════ -->
+<div class="container">
+  <section id="mqtt-topics">
+    <h2 class="reveal"><span class="num">04</span>MQTT Topic Design &amp; Communication Flows</h2>
+    <p class="section-lead reveal">A structured topic hierarchy that cleanly separates telemetry, commands, command output, and device status — enabling scalable, organized device management.</p>
+
+    <h3 class="reveal">Topic Hierarchy</h3>
+    <div class="topic-tree reveal">
+      <span class="folder">iot/</span><br>
+      &nbsp;&nbsp;<span class="folder">└── devices/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="folder">└── {device_id}/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">├── telemetry</span> <span class="desc">&nbsp;← periodic sensor readings (device → broker)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">├── cmd</span> <span class="desc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← inbound commands (broker → device)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">├── cmd/out</span> <span class="desc">&nbsp;&nbsp;&nbsp;← command execution results (device → broker)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">└── status</span> <span class="desc">&nbsp;&nbsp;&nbsp;&nbsp;← online/offline (retained message)</span>
+    </div>
+
+    <h3 class="reveal">Flow 1: Telemetry — Device to Server</h3>
+    <div class="flow-steps reveal">
+      <div class="flow-step">
+        <div class="flow-step-line"><div class="flow-step-dot"></div><div class="flow-step-bar"></div></div>
+        <div class="flow-step-content">
+          <h4>ESP32 reads sensors</h4>
+          <p>Temperature, humidity, soil moisture, and light values are sampled on-device.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-line"><div class="flow-step-dot"></div><div class="flow-step-bar"></div></div>
+        <div class="flow-step-content">
+          <h4>Publish to telemetry topic</h4>
+          <p>Data is serialized as JSON and published to <code>iot/devices/{id}/telemetry</code> with QoS 1.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-line"><div class="flow-step-dot"></div><div class="flow-step-bar"></div></div>
+        <div class="flow-step-content">
+          <h4>Broker routes to subscribers</h4>
+          <p>The EMQX broker delivers the message to all subscribed dashboards and applications in real time.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="reveal">Flow 2: Command — Server to Device</h3>
+    <div class="flow-steps reveal">
+      <div class="flow-step">
+        <div class="flow-step-line"><div class="flow-step-dot"></div><div class="flow-step-bar"></div></div>
+        <div class="flow-step-content">
+          <h4>User sends command via HTTP API</h4>
+          <p>A command (e.g., shell execution, interval change) is submitted through a dashboard or API endpoint.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-line"><div class="flow-step-dot"></div><div class="flow-step-bar"></div></div>
+        <div class="flow-step-content">
+          <h4>Server bridges HTTP → MQTT</h4>
+          <p>The server publishes the JSON command payload to <code>iot/devices/{id}/cmd</code>.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-line"><div class="flow-step-dot"></div><div class="flow-step-bar"></div></div>
+        <div class="flow-step-content">
+          <h4>Device executes and responds</h4>
+          <p>The ESP32 receives the command, executes it, and publishes the result (stdout, exit code, timestamp) to <code>cmd/out</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info reveal">
+      <span class="callout-icon">💡</span>
+      <p><strong>Centralized model:</strong> Devices never communicate directly with each other. All messages route through the broker, ensuring security, auditability, and message reliability.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 05 TLS vs mTLS ═══════════════════════ -->
+<div class="container">
+  <section id="tls-mtls">
+    <h2 class="reveal"><span class="num">05</span>TLS vs mTLS — Authentication Model</h2>
+    <p class="section-lead reveal">Why mutual TLS was selected over standard TLS, and how it enforces device-level identity verification at the transport layer.</p>
+
+    <!-- TLS vs mTLS Diagram -->
+    <div class="diagram-wrap reveal">
+      <div class="diagram-header"><span class="dot"></span> TLS vs Mutual TLS Handshake</div>
+      <div class="diagram-body">
+        <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <rect width="760" height="340" fill="#12151c" rx="10"/>
+
+          <!-- Standard TLS -->
+          <g transform="translate(30, 20)">
+            <text x="160" y="0" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="Outfit" font-weight="600" letter-spacing="1">STANDARD TLS</text>
+            <text x="160" y="16" text-anchor="middle" fill="#5a6478" font-size="9" font-family="Outfit">Server authenticated, client anonymous</text>
+
+            <rect x="20" y="40" width="80" height="36" rx="6" fill="none" stroke="#8892a6" stroke-width="1"/>
+            <text x="60" y="63" text-anchor="middle" fill="#8892a6" font-size="11" font-family="Outfit">Client</text>
+
+            <rect x="220" y="40" width="80" height="36" rx="6" fill="none" stroke="#fbbf24" stroke-width="1.2"/>
+            <text x="260" y="63" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="Outfit">Server</text>
+
+            <!-- Arrows -->
+            <line x1="100" y1="90" x2="220" y2="110" stroke="#fbbf24" stroke-width="1"/>
+            <text x="160" y="96" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">ClientHello</text>
+
+            <line x1="220" y1="120" x2="100" y2="140" stroke="#fbbf24" stroke-width="1"/>
+            <text x="160" y="128" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="JetBrains Mono">Server Certificate ✓</text>
+
+            <line x1="100" y1="150" x2="220" y2="170" stroke="#fbbf24" stroke-width="1"/>
+            <text x="160" y="158" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">Key Exchange</text>
+
+            <rect x="40" y="185" width="240" height="24" rx="4" fill="rgba(251,191,36,0.08)"/>
+            <text x="160" y="201" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="Outfit">🔒 Encrypted channel — server verified only</text>
+
+            <text x="160" y="235" text-anchor="middle" fill="#f87171" font-size="9" font-family="Outfit" font-weight="500">✗ Any client can connect — no device identity</text>
+          </g>
+
+          <!-- Mutual TLS -->
+          <g transform="translate(410, 20)">
+            <text x="160" y="0" text-anchor="middle" fill="#34d399" font-size="12" font-family="Outfit" font-weight="600" letter-spacing="1">MUTUAL TLS (mTLS)</text>
+            <text x="160" y="16" text-anchor="middle" fill="#5a6478" font-size="9" font-family="Outfit">Both sides authenticated with certificates</text>
+
+            <rect x="20" y="40" width="80" height="36" rx="6" fill="none" stroke="#34d399" stroke-width="1.2"/>
+            <text x="60" y="63" text-anchor="middle" fill="#34d399" font-size="11" font-family="Outfit">Client</text>
+
+            <rect x="220" y="40" width="80" height="36" rx="6" fill="none" stroke="#34d399" stroke-width="1.2"/>
+            <text x="260" y="63" text-anchor="middle" fill="#34d399" font-size="11" font-family="Outfit">Server</text>
+
+            <line x1="100" y1="90" x2="220" y2="110" stroke="#34d399" stroke-width="1"/>
+            <text x="160" y="96" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">ClientHello</text>
+
+            <line x1="220" y1="120" x2="100" y2="140" stroke="#34d399" stroke-width="1"/>
+            <text x="160" y="128" text-anchor="middle" fill="#34d399" font-size="8" font-family="JetBrains Mono">Server Certificate ✓</text>
+
+            <line x1="100" y1="150" x2="220" y2="170" stroke="#34d399" stroke-width="1"/>
+            <text x="160" y="158" text-anchor="middle" fill="#34d399" font-size="8" font-family="JetBrains Mono">Client Certificate ✓</text>
+
+            <line x1="220" y1="175" x2="100" y2="190" stroke="#34d399" stroke-width="1"/>
+            <text x="160" y="186" text-anchor="middle" fill="#5a6478" font-size="8" font-family="JetBrains Mono">Key Exchange</text>
+
+            <rect x="40" y="205" width="240" height="24" rx="4" fill="rgba(52,211,153,0.08)"/>
+            <text x="160" y="221" text-anchor="middle" fill="#34d399" font-size="9" font-family="Outfit">🔒 Encrypted channel — both sides verified</text>
+
+            <text x="160" y="255" text-anchor="middle" fill="#34d399" font-size="9" font-family="Outfit" font-weight="500">✓ Only devices with valid certs can connect</text>
+          </g>
+
+          <!-- Bottom comparison -->
+          <g transform="translate(30, 290)">
+            <rect x="0" y="0" width="700" height="36" rx="6" fill="rgba(35,42,56,0.5)" stroke="#232a38"/>
+            <text x="20" y="23" fill="#5a6478" font-size="9" font-family="Outfit">PROJECT CHOICE:</text>
+            <text x="140" y="23" fill="#34d399" font-size="10" font-family="Outfit" font-weight="600">mTLS — Each ESP32 holds a unique client certificate signed by a private CA (Step-CA)</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <table class="comp-table reveal">
+      <thead><tr><th>Feature</th><th>TLS</th><th>mTLS</th></tr></thead>
+      <tbody>
+        <tr><td>Encryption</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Server Authentication</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Client Authentication</td><td class="cross">✗</td><td class="check">✓</td></tr>
+        <tr><td>Security Level</td><td>Medium</td><td class="winner">High</td></tr>
+        <tr><td>IoT Suitability</td><td>Limited</td><td class="winner">Ideal</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout secure reveal">
+      <span class="callout-icon">🔐</span>
+      <p><strong>PKI architecture:</strong> A private Certificate Authority (Step-CA) runs in Docker. During provisioning, each ESP32 generates its private key on-chip, sends a Certificate Signing Request (CSR) to Step-CA, and receives a signed client certificate. The private key never leaves the device. At runtime, the EMQX broker verifies device certificates locally using the CA's root certificate — Step-CA is not contacted per connection.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 06 DEVICE CLIENT ═══════════════════════ -->
+<div class="container">
+  <section id="device-client">
+    <h2 class="reveal"><span class="num">06</span>ESP32 Client Implementation</h2>
+    <p class="section-lead reveal">A Python-based MQTT client (MicroPython-compatible pattern) that handles TLS connection, telemetry publishing, command subscription, and bidirectional communication with the broker.</p>
+
+    <div class="code-block reveal">
+      <div class="code-header">
+        <div class="dots"><span></span><span></span><span></span></div>
+        device_client.py — Core Connection Logic (Sanitized)
+      </div>
+      <div class="code-body"><pre><span class="cm"># ── Broker connection settings ──</span>
+BROKER_HOST = <span class="str">"&lt;GATEWAY_PUBLIC_IP&gt;"</span>
+BROKER_PORT = <span class="num">8883</span>
+DEVICE_ID   = <span class="str">"device001"</span>
+
+<span class="cm"># ── Topic structure ──</span>
+TOPIC_TELEMETRY = <span class="str">f"iot/devices/{DEVICE_ID}/telemetry"</span>
+TOPIC_COMMANDS  = <span class="str">f"iot/devices/{DEVICE_ID}/cmd"</span>
+TOPIC_STATUS    = <span class="str">f"iot/devices/{DEVICE_ID}/status"</span>
+TOPIC_CMD_OUT   = <span class="str">f"iot/devices/{DEVICE_ID}/cmd/out"</span>
+
+<span class="cm"># ── TLS setup ──</span>
+client.<span class="fn">tls_set</span>(ca_certs=<span class="str">"ca.pem"</span>, tls_version=ssl.PROTOCOL_TLS_CLIENT)
+
+<span class="cm"># ── Last Will & Testament ──</span>
+<span class="cm"># Broker auto-publishes offline status if device disconnects unexpectedly</span>
+client.<span class="fn">will_set</span>(TOPIC_STATUS,
+    payload=json.<span class="fn">dumps</span>({<span class="str">"online"</span>: <span class="kw">False</span>, <span class="str">"ts"</span>: int(time.<span class="fn">time</span>())}),
+    qos=<span class="num">1</span>, retain=<span class="kw">True</span>)
+
+<span class="cm"># ── On connect: subscribe to commands, publish online status ──</span>
+<span class="kw">def</span> <span class="fn">on_connect</span>(client, userdata, flags, rc, props):
+    client.<span class="fn">subscribe</span>(TOPIC_COMMANDS, qos=<span class="num">1</span>)
+    client.<span class="fn">publish</span>(TOPIC_STATUS,
+        json.<span class="fn">dumps</span>({<span class="str">"online"</span>: <span class="kw">True</span>, <span class="str">"ts"</span>: int(time.<span class="fn">time</span>())}),
+        qos=<span class="num">1</span>, retain=<span class="kw">True</span>)</pre>
+      </div>
+    </div>
+
+    <h3 class="reveal">Client Capabilities</h3>
+    <div class="layer-grid reveal">
+      <div class="layer-card">
+        <span class="tag edge">Telemetry</span>
+        <h4>Periodic Sensor Publishing</h4>
+        <p>Reads temperature, humidity, soil moisture, and light at configurable intervals (default 15s). Publishes JSON payloads with QoS 1 for guaranteed delivery.</p>
+      </div>
+      <div class="layer-card">
+        <span class="tag core">Command Execution</span>
+        <h4>Remote Shell Control</h4>
+        <p>Receives JSON commands on the <code>cmd</code> topic, executes them asynchronously in background threads, and returns stdout/stderr/exit code on <code>cmd/out</code>.</p>
+      </div>
+      <div class="layer-card">
+        <span class="tag gateway">Presence</span>
+        <h4>Online/Offline Status</h4>
+        <p>Uses MQTT retained messages and Last Will &amp; Testament (LWT) to maintain accurate device presence — the broker automatically marks a device offline on unexpected disconnect.</p>
+      </div>
+      <div class="layer-card">
+        <span class="tag dmz">Dynamic Config</span>
+        <h4>Runtime Interval Adjustment</h4>
+        <p>A special <code>set_interval</code> command changes the telemetry publish rate without requiring a restart or firmware update.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 07 REMOTE EXEC ═══════════════════════ -->
+<div class="container">
+  <section id="remote-exec">
+    <h2 class="reveal"><span class="num">07</span>Remote Shell Command Execution</h2>
+    <p class="section-lead reveal">The device simulator turns the MQTT broker into a full remote control channel — any shell command can be dispatched, executed, and its results returned in real time.</p>
+
+    <h3 class="reveal">Command Payload Format</h3>
+    <div class="code-block reveal">
+      <div class="code-header">
+        <div class="dots"><span></span><span></span><span></span></div>
+        Accepted JSON Keys (all equivalent)
+      </div>
+      <div class="code-body"><pre><span class="cm">// Any of these keys triggers shell execution:</span>
+{<span class="str">"cmd"</span>:     <span class="str">"whoami"</span>}        <span class="cm">// most common</span>
+{<span class="str">"exec"</span>:    <span class="str">"df -h"</span>}         <span class="cm">// alternative</span>
+{<span class="str">"shell"</span>:   <span class="str">"uptime"</span>}        <span class="cm">// alternative</span>
+{<span class="str">"command"</span>: <span class="str">"ip a"</span>}          <span class="cm">// alternative</span>
+
+<span class="cm">// Special command — change telemetry interval:</span>
+{<span class="str">"set_interval"</span>: <span class="num">5</span>}         <span class="cm">// publish every 5 seconds</span></pre>
+      </div>
+    </div>
+
+    <h3 class="reveal">Response Format</h3>
+    <div class="code-block reveal">
+      <div class="code-header">
+        <div class="dots"><span></span><span></span><span></span></div>
+        Published to cmd/out topic
+      </div>
+      <div class="code-body"><pre>{
+  <span class="str">"ok"</span>:      <span class="kw">true</span>,               <span class="cm">// true if exit code = 0</span>
+  <span class="str">"rc"</span>:      <span class="num">0</span>,                  <span class="cm">// shell exit code</span>
+  <span class="str">"command"</span>: <span class="str">"whoami"</span>,           <span class="cm">// exact command executed</span>
+  <span class="str">"output"</span>:  <span class="str">"root\n"</span>,           <span class="cm">// stdout + stderr (last 8KB)</span>
+  <span class="str">"ts"</span>:      <span class="num">1711360000</span>          <span class="cm">// Unix timestamp</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="callout warn reveal">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Security note:</strong> Shell execution is deliberately powerful for authorized operators. In production, this capability is protected by mTLS (only devices with valid certificates receive commands), VPN-restricted broker access, and EMQX ACLs that limit which clients can publish to command topics.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ 08 HARDENING ═══════════════════════ -->
+<div class="container">
+  <section id="hardening">
+    <h2 class="reveal"><span class="num">08</span>Server Hardening &amp; Defence in Depth</h2>
+    <p class="section-lead reveal">A layered security approach where the MQTT broker server is protected at the network, firewall, transport, and access control levels — no single point of failure.</p>
+
+    <div class="security-stack reveal">
+      <div class="security-layer">
+        <div class="icon net">🌐</div>
+        <div>
+          <h4>Network Isolation</h4>
+          <p>The broker server has no public IP and is reachable only through the VPN tunnel. This eliminates direct internet exposure, preventing brute-force, port scanning, and protocol-level attacks.</p>
+        </div>
+      </div>
+      <div class="security-layer">
+        <div class="icon fw">🧱</div>
+        <div>
+          <h4>Firewall Rules (UFW)</h4>
+          <p>Default-deny incoming policy. Only VPN subnet traffic is allowed on specific ports: 8883 (MQTT/TLS), 22 (SSH), and the management dashboard. All other connections are silently dropped.</p>
+        </div>
+      </div>
+      <div class="security-layer">
+        <div class="icon tls">🔒</div>
+        <div>
+          <h4>Transport Encryption (mTLS)</h4>
+          <p>All device-to-broker communication uses mutual TLS on port 8883. The broker validates both the device certificate and its own server certificate, ensuring end-to-end encrypted and mutually authenticated channels.</p>
+        </div>
+      </div>
+      <div class="security-layer">
+        <div class="icon ssh">🔑</div>
+        <div>
+          <h4>SSH Hardening</h4>
+          <p>Root login disabled. Access requires both an SSH key and a password (multi-factor). Only a single authorized admin user is permitted. VPN-only access further limits exposure.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block reveal">
+      <div class="code-header">
+        <div class="dots"><span></span><span></span><span></span></div>
+        UFW Firewall Rules — Structure
+      </div>
+      <div class="code-body"><pre><span class="cm"># Default policy: deny all incoming, allow outgoing</span>
+<span class="kw">sudo</span> ufw default deny incoming
+<span class="kw">sudo</span> ufw default allow outgoing
+
+<span class="cm"># Allow MQTT over TLS from VPN subnet only</span>
+<span class="kw">sudo</span> ufw allow from <span class="str">&lt;VPN_SUBNET&gt;</span> to any port <span class="num">8883</span>
+
+<span class="cm"># Allow SSH from VPN subnet only</span>
+<span class="kw">sudo</span> ufw allow from <span class="str">&lt;VPN_SUBNET&gt;</span> to any port <span class="num">22</span>
+
+<span class="cm"># Allow EMQX dashboard from VPN subnet only</span>
+<span class="kw">sudo</span> ufw allow from <span class="str">&lt;VPN_SUBNET&gt;</span> to any port <span class="num">18083</span></pre>
+      </div>
+    </div>
+
+    <div class="code-block reveal">
+      <div class="code-header">
+        <div class="dots"><span></span><span></span><span></span></div>
+        SSH Hardening — sshd_config
+      </div>
+      <div class="code-body"><pre><span class="kw">PermitRootLogin</span> <span class="str">no</span>
+<span class="kw">PubkeyAuthentication</span> <span class="str">yes</span>
+<span class="kw">PasswordAuthentication</span> <span class="str">yes</span>
+<span class="kw">AuthenticationMethods</span> <span class="str">publickey,password</span>    <span class="cm"># Both required (MFA)</span>
+<span class="kw">AllowUsers</span> <span class="str">&lt;admin_username&gt;</span></pre>
+      </div>
+    </div>
+
+    <!-- Defense in Depth Diagram -->
+    <div class="diagram-wrap reveal">
+      <div class="diagram-header"><span class="dot"></span> Defence in Depth — Layered Security Model</div>
+      <div class="diagram-body">
+        <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <rect width="700" height="260" fill="#12151c" rx="10"/>
+
+          <!-- Outermost ring -->
+          <rect x="30" y="20" width="640" height="220" rx="12" fill="none" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="6 4"/>
+          <text x="60" y="42" fill="#fbbf24" font-size="10" font-family="Outfit" font-weight="600">LAYER 1: pfSense Gateway + NAT</text>
+
+          <!-- Second ring -->
+          <rect x="60" y="56" width="580" height="170" rx="10" fill="none" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="6 4"/>
+          <text x="90" y="76" fill="#a78bfa" font-size="10" font-family="Outfit" font-weight="600">LAYER 2: OpenVPN Tunnel (Encrypted)</text>
+
+          <!-- Third ring -->
+          <rect x="90" y="90" width="520" height="120" rx="8" fill="none" stroke="#22d3ee" stroke-width="1.2" stroke-dasharray="6 4"/>
+          <text x="120" y="110" fill="#22d3ee" font-size="10" font-family="Outfit" font-weight="600">LAYER 3: UFW Firewall (Default Deny)</text>
+
+          <!-- Core -->
+          <rect x="150" y="124" width="400" height="68" rx="8" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="350" y="150" text-anchor="middle" fill="#34d399" font-size="12" font-family="Outfit" font-weight="600">LAYER 4: mTLS + SSH Key Auth</text>
+          <text x="350" y="170" text-anchor="middle" fill="#5a6478" font-size="10" font-family="Outfit">EMQX Broker — Protected Core</text>
+
+          <!-- Attacker -->
+          <text x="350" y="252" text-anchor="middle" fill="#f87171" font-size="9" font-family="Outfit">An attacker must breach ALL 4 layers to reach the broker — no single point of compromise</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="footer">
+  <p>Secure IoT Communication Architecture — Technical Report</p>
+  <p style="margin-top: 0.3rem; color: #5a6478;">Sensitive information (IP addresses, credentials, hostnames) has been redacted for public sharing.</p>
+</footer>
+
+<script>
+// Scroll reveal animation
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
