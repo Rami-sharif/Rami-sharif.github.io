@@ -74,7 +74,7 @@ function Hero() {
               Get In Touch
             </a>
             <a
-              href="/Rami Sharif_CV .pdf"
+              href="/Rami_Sharif_CV.pdf"
               target="_blank"
               rel="noreferrer"
               className="btn btn-outline"
