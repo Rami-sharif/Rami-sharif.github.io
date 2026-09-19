@@ -2,12 +2,12 @@ import SectionTitle from '../components/SectionTitle'
 
 const projects = [
   {
-    title: 'AI-Powered SOC Automation Pipeline',
+    title: 'RAM — AI Agent Working in the SOC',
     description:
-      'Automating alert triage, threat enrichment, MITRE ATT&CK classification, and incident case creation using a self-hosted LLM integrated with open-source SOC tools.',
-    image: '/images/Understanding-AI-SOC.jpg',
-    link: '/projects/soc_report.html',
-    tags: ['Wazuh', 'Shuffle SOAR', 'Ollama/Mistral 7B', 'TheHive', 'MITRE ATT&CK'],
+      'AI-powered SOC investigation agent that investigates Wazuh alerts with read-only tools, threat intelligence, and semantic memory of past incidents, then hands analysts a MITRE-mapped case in TheHive.',
+    image: '/images/ram-soc.png',
+    link: 'https://ram-soc.site/',
+    tags: ['Wazuh', 'AI Agent', 'RAG Memory', 'Threat Intel', 'TheHive', 'MITRE ATT&CK'],
   },
   {
     title: 'Secure IoT Communication Architecture',
