@@ -7,6 +7,7 @@ const projects = [
       'AI-powered SOC investigation agent that investigates Wazuh alerts with read-only tools, threat intelligence, and semantic memory of past incidents, then hands analysts a MITRE-mapped case in TheHive.',
     image: '/images/ram-soc.png',
     link: 'https://ram-soc.site/',
+    repo: 'https://github.com/Rami-sharif/ram-v2',
     tags: ['Wazuh', 'AI Agent', 'RAG Memory', 'Threat Intel', 'TheHive', 'MITRE ATT&CK'],
   },
   {
