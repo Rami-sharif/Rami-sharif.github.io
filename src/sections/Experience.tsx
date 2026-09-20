@@ -81,7 +81,7 @@ const experiences: Experience[] = [
     company: 'Cyberpedia',
     location: 'Remote',
     summary:
-      'I secure client businesses in Saudi Arabia, the UK, and Germany — including an e-learning platform, an IT company, and a cybersecurity services partner — across their networks, servers, cloud, and code, and I co-built the AI-powered SOC that monitors them.',
+      'I secure client businesses in Saudi Arabia, the UK, and Germany — including an e-learning platform, an IT company, and a cybersecurity services partner — across their networks, servers, cloud, and code, and I built the AI-powered SOC that monitors them.',
     tasks: [
       {
         title: 'Designed secure networks for client infrastructure',
@@ -89,7 +89,7 @@ const experiences: Experience[] = [
           'Built segmented networks with pfSense, MikroTik, OpenVPN, and HAProxy — firewall policies, ACLs, and isolated zones for critical services — with secure remote access and fine-grained access control.',
       },
       {
-        title: 'Co-built RAM, an AI-powered SOC',
+        title: 'Built RAM, an AI-powered SOC',
         detail:
           'RAM is an AI agent that investigates serious Wazuh alerts before an analyst opens them. It checks threat intelligence, host history, and similar past incidents, then opens a MITRE-mapped case in TheHive — in about 13 seconds per alert. The agent only has read-only tools, so it can never change a system; a human always makes the final call.',
       },
